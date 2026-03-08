@@ -39,7 +39,7 @@ class Saaf {
     await setAdRequest();
   }
 
-  Future<void> setAdRequest({bool force = false}) async {
+  Future<void> setAdRequest() async {
     Account account = AccountManager().getActive();
     Person? person = account.activeProfile;
 
@@ -59,7 +59,7 @@ class Saaf {
     }
   }
 
-  Widget bannerAd(BuildContext context, Widget fallback) {
+  Widget bannerAd(BuildContext context) {
     return const SizedBox();
   }
 
