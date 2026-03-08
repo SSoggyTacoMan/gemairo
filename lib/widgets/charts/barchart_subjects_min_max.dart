@@ -18,19 +18,22 @@ class BarChartSubjectsMinMax extends StatelessWidget {
         .toList();
 
     useableSubjects.asMap().forEach((index, Subject subject) {
+      // Cache per-subject computations instead of calling multiple times
+      final highest = subject.grades.getHighest()!;
+      final lowest = subject.grades.getLowest()!;
+      final med = subject.grades.median;
+
       barData.add(BarChartGroupData(
         x: index,
         barRods: [
           BarChartRodData(
-              toY: subject.grades.getHighest()!.grade,
-              fromY: subject.grades.getLowest()!.grade,
+              toY: highest.grade,
+              fromY: lowest.grade,
               borderRadius: const BorderRadius.all(Radius.circular(4)),
               width: 16,
               color: Theme.of(context).colorScheme.primary,
               rodStackItems: [
-                BarChartRodStackItem(
-                    subject.grades.median - .1,
-                    subject.grades.median + .1,
+                BarChartRodStackItem(med - .1, med + .1,
                     Theme.of(context).colorScheme.inversePrimary),
               ])
         ],
