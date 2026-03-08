@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gemairo/widgets/ads.dart';
 
 class IntroductionSkeleton extends StatelessWidget {
   const IntroductionSkeleton({

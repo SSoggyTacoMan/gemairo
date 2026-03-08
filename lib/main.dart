@@ -14,7 +14,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide Person;
 import 'package:gemairo/apis/abstact_api.dart';
 import 'package:gemairo/apis/account_manager.dart';
-import 'package:gemairo/apis/saaf.dart';
 import 'package:gemairo/firebase_options.dart';
 import 'package:gemairo/hive/extentions.dart';
 import 'package:gemairo/screens/login.dart';
@@ -281,13 +280,6 @@ class _Start extends State<Start> {
     );
 
     super.initState();
-
-    if (AccountManager().personList.isNotEmpty &&
-        AccountManager().getActive().profiles.isNotEmpty) {
-      Saaf.instance
-          ?.initialize()
-          .then((_) => Saaf.instance?.handleTakeover(context));
-    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       checkReview();

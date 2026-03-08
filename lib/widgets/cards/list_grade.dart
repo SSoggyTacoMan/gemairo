@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:gemairo/apis/account_manager.dart';
-import 'package:gemairo/apis/ads.dart';
 import 'package:gemairo/hive/adapters.dart';
 import 'package:gemairo/hive/extentions.dart';
 import 'package:gemairo/widgets/avatars.dart';
@@ -403,11 +402,6 @@ class _GradeInformation extends State<GradeInformation> {
                       preFillWeight: widget.grade.weight,
                       calcNewAverage: false),
                 ))),
-        if (Ads.instance != null)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Ads.instance!.bannerAd(context),
-          ),
         Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: GemairoCard(
