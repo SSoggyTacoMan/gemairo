@@ -29,12 +29,15 @@ class _LineChartGradesState extends State<LineChartGrades> {
     gradeData = List.generate(useablegrades.length, (index) {
       return FlSpot(index.toDouble(), useablegrades[index].grade);
     });
-    averageGradeData = widget.showAverage
-        ? List.generate(useablegrades.length, (index) {
-            return FlSpot(index.toDouble(),
-                useablegrades.take(index + 1).toList().average);
-          })
-        : [];
+    // Compute running average using the same semantics as List<Grade>.average
+    if (widget.showAverage && useablegrades.isNotEmpty) {
+      averageGradeData = List.generate(useablegrades.length, (index) {
+        final gradesUntilNow = useablegrades.take(index + 1).toList();
+        return FlSpot(index.toDouble(), gradesUntilNow.average);
+      });
+    } else {
+      averageGradeData = [];
+    }
     return Future.value(true);
   }
 

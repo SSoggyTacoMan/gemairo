@@ -172,38 +172,90 @@ extension GradeCalculations on List<Grade> {
   }
 
   List<Grade> onlyFilterd(List<Filter> activeFilters) {
-    List<Grade> filterdGrades = where(
-      (Grade grade) =>
-          !(activeFilters.where((filter) => filter.type == FilterTypes.quarterCode).isNotEmpty &&
-              !activeFilters
-                  .where((filter) => filter.type == FilterTypes.quarterCode)
-                  .map((e) => e.filter)
-                  .contains(grade.schoolQuarter?.id.toString())) &&
-          !(activeFilters.where((filter) => filter.type == FilterTypes.subject).isNotEmpty &&
-              !activeFilters
-                  .where((filter) => filter.type == FilterTypes.subject)
-                  .map((e) => e.filter)
-                  .contains(grade.subject.id.toString())) &&
-          !(activeFilters.where((filter) => filter.type == FilterTypes.teacher).isNotEmpty &&
-              !activeFilters
-                  .where((filter) => filter.type == FilterTypes.teacher)
-                  .map((e) => e.filter)
-                  .contains(grade.teacherCode)) &&
-          !(activeFilters.where((filter) => filter.type == FilterTypes.dateRange).isNotEmpty &&
-              !activeFilters
-                  .where((filter) => filter.type == FilterTypes.dateRange)
-                  .map((e) => e.filter)
-                  .any((dateRange) =>
-                      dateRange.start.difference(grade.addedDate).inMilliseconds.isNegative &&
-                      !dateRange.end
-                          .difference(DateUtils.dateOnly(grade.addedDate))
-                          .inMilliseconds
-                          .isNegative)) &&
-          !(activeFilters.where((filter) => filter.type == FilterTypes.pta).isNotEmpty &&
-              grade.isPTA != true) &&
-          !(activeFilters.where((filter) => filter.type == FilterTypes.inputString).isNotEmpty &&
-              !activeFilters.where((filter) => filter.type == FilterTypes.inputString).map((e) => e.filter).any((filter) => (grade.description != "" && grade.description.toLowerCase().contains(filter.toLowerCase())) || (grade.teacherCode != null && grade.teacherCode!.toLowerCase().contains(filter.toLowerCase())) || (grade.gradeString.toLowerCase().contains(filter.toLowerCase())))),
-    ).toList();
+    if (activeFilters.isEmpty) {
+      List<Grade> result = toList();
+      result.sort((Grade a, Grade b) => b.addedDate.millisecondsSinceEpoch
+          .compareTo(a.addedDate.millisecondsSinceEpoch));
+      return result;
+    }
+
+    // Pre-compute filter sets once instead of per-grade
+    final quarterCodes = <String>{};
+    final subjects = <String>{};
+    final teachers = <String>{};
+    final dateRanges = <DateTimeRange>[];
+    bool filterPTA = false;
+    final inputStrings = <String>[];
+
+    for (var filter in activeFilters) {
+      switch (filter.type) {
+        case FilterTypes.quarterCode:
+          quarterCodes.add(filter.filter.toString());
+          break;
+        case FilterTypes.subject:
+          subjects.add(filter.filter.toString());
+          break;
+        case FilterTypes.teacher:
+          teachers.add(filter.filter as String);
+          break;
+        case FilterTypes.dateRange:
+          dateRanges.add(filter.filter as DateTimeRange);
+          break;
+        case FilterTypes.pta:
+          filterPTA = true;
+          break;
+        case FilterTypes.inputString:
+          inputStrings.add(filter.filter as String);
+          break;
+        default:
+          break;
+      }
+    }
+
+    List<Grade> filterdGrades = where((Grade grade) {
+      if (quarterCodes.isNotEmpty &&
+          !quarterCodes.contains(grade.schoolQuarter?.id.toString())) {
+        return false;
+      }
+      if (subjects.isNotEmpty &&
+          !subjects.contains(grade.subject.id.toString())) {
+        return false;
+      }
+      if (teachers.isNotEmpty && !teachers.contains(grade.teacherCode)) {
+        return false;
+      }
+      if (dateRanges.isNotEmpty &&
+          !dateRanges.any((dateRange) =>
+              dateRange.start
+                  .difference(grade.addedDate)
+                  .inMilliseconds
+                  .isNegative &&
+              !dateRange.end
+                  .difference(DateUtils.dateOnly(grade.addedDate))
+                  .inMilliseconds
+                  .isNegative)) {
+        return false;
+      }
+      if (filterPTA && grade.isPTA != true) {
+        return false;
+      }
+      if (inputStrings.isNotEmpty &&
+          !inputStrings.any((filter) =>
+              (grade.description != "" &&
+                  grade.description
+                      .toLowerCase()
+                      .contains(filter.toLowerCase())) ||
+              (grade.teacherCode != null &&
+                  grade.teacherCode!
+                      .toLowerCase()
+                      .contains(filter.toLowerCase())) ||
+              (grade.gradeString
+                  .toLowerCase()
+                  .contains(filter.toLowerCase())))) {
+        return false;
+      }
+      return true;
+    }).toList();
 
     filterdGrades.sort((Grade a, Grade b) => b.addedDate.millisecondsSinceEpoch
         .compareTo(a.addedDate.millisecondsSinceEpoch));
@@ -222,50 +274,49 @@ extension GradeCalculations on List<Grade> {
           ], context: context);
     }
 
+    final lowest = getLowest();
+    final highest = getHighest();
+    final percentSufficient = getPresentageSufficient();
+
+    // Cache linked tests computation
+    List<CalendarEvent>? upcomingTests;
+    if (person != null) {
+      upcomingTests = getLinkedTests(person.calendarEvents)
+          .where((test) => test.end.isAfter(DateTime.now()))
+          .toList();
+    }
+
     return [
       if (isNotEmpty)
         Fact(
             title: AppLocalizations.of(context)!.latestGrade,
             value: first.gradeString,
             onTap: displayGrade(first)),
-      if (person != null &&
-          getLinkedTests(person.calendarEvents)
-              .where((test) => test.end.isAfter(DateTime.now()))
-              .toList()
-              .isNotEmpty)
+      if (upcomingTests != null && upcomingTests.isNotEmpty)
         Fact(
             title: AppLocalizations.of(context)!.nextTest,
-            value: getLinkedTests(person.calendarEvents)
-                .where((test) => test.end.isAfter(DateTime.now()))
-                .toList()
-                .first
-                .start
-                .countdownString(context),
+            value: upcomingTests.first.start.countdownString(context),
             onTap: () => showGemairoModalBottomSheet(children: [
                   EventInformation(
-                      context: context,
-                      event: getLinkedTests(person.calendarEvents)
-                          .where((test) => test.end.isAfter(DateTime.now()))
-                          .toList()
-                          .first)
+                      context: context, event: upcomingTests!.first)
                 ], context: context)),
       if (where((grade) => !grade.sufficient).isNotEmpty)
         Fact(
             title: AppLocalizations.of(context)!.percentInsufficient,
-            value: "${(100 - getPresentageSufficient()).displayNumber()}%"),
+            value: "${(100 - percentSufficient).displayNumber()}%"),
       Fact(
           title: AppLocalizations.of(context)!.percentSufficient,
-          value: "${getPresentageSufficient().displayNumber()}%"),
-      if (getLowest() != null)
+          value: "${percentSufficient.displayNumber()}%"),
+      if (lowest != null)
         Fact(
             title: AppLocalizations.of(context)!.lowest,
-            value: getLowest()!.gradeString,
-            onTap: displayGrade(getLowest()!)),
-      if (getHighest() != null)
+            value: lowest.gradeString,
+            onTap: displayGrade(lowest)),
+      if (highest != null)
         Fact(
             title: AppLocalizations.of(context)!.highest,
-            value: getHighest()!.gradeString,
-            onTap: displayGrade(getHighest()!)),
+            value: highest.gradeString,
+            onTap: displayGrade(highest)),
       Fact(
           title:
               AppLocalizations.of(context)!.amountOfInsufficient.capitalize(),
@@ -284,9 +335,15 @@ extension GradeCalculations on List<Grade> {
         .map((e) => e.copy)
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
+
+    // Group grades by subject id in a single pass instead of O(n) per subject
+    final gradesById = <int, List<Grade>>{};
+    for (final grade in this) {
+      gradesById.putIfAbsent(grade.subject.id, () => []).add(grade);
+    }
+
     for (Subject subject in foundSubjects) {
-      subject.grades =
-          where((grade) => grade.subject.id == subject.id).toList();
+      subject.grades = gradesById[subject.id] ?? [];
     }
     return foundSubjects;
   }

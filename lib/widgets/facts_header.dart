@@ -89,16 +89,6 @@ class _FactsHeader extends State<FactsHeader> {
                           CarouselSlider.builder(
                               itemCount: (facts.length / 2).ceil() + 1,
                               itemBuilder: (context, index, realIndex) {
-                                List<Widget> cards = facts
-                                    .map((fact) => SizedBox(
-                                          height: constraints.maxHeight,
-                                          child: FactCard(
-                                            title: fact.title.capitalize(),
-                                            value: fact.value.getGradeString,
-                                            onTap: fact.onTap,
-                                          ),
-                                        ))
-                                    .toList();
                                 if (index == (facts.length / 2).ceil()) {
                                   return FactCard(
                                       title: AppLocalizations.of(context)!
@@ -112,15 +102,26 @@ class _FactsHeader extends State<FactsHeader> {
                                             100,
                                       ));
                                 }
+                                final startIdx = index * 2;
+                                final endIdx = startIdx + 2 > facts.length
+                                    ? facts.length
+                                    : startIdx + 2;
                                 return StaggeredGrid.count(
                                     crossAxisSpacing: 8,
                                     crossAxisCount: 2,
                                     children: [
-                                      ...cards.getRange(
-                                          index * 2,
-                                          index * 2 + 2 > facts.length
-                                              ? facts.length
-                                              : index * 2 + 2)
+                                      ...facts
+                                          .getRange(startIdx, endIdx)
+                                          .map((fact) => SizedBox(
+                                                height: constraints.maxHeight,
+                                                child: FactCard(
+                                                  title:
+                                                      fact.title.capitalize(),
+                                                  value:
+                                                      fact.value.getGradeString,
+                                                  onTap: fact.onTap,
+                                                ),
+                                              ))
                                     ]);
                               },
                               options: CarouselOptions(

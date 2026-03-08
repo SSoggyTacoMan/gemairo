@@ -16,6 +16,13 @@ class _BarChartFrequency extends State<BarChartFrequency> {
   bool showPattern = false;
   @override
   Widget build(BuildContext context) {
+    // Cache frequency computation instead of calling 30 times in the loop
+    final frequency = widget.grades.getGradeFrequency();
+    final maxFreq = frequency.values.isEmpty
+        ? 0.0
+        : frequency.values.reduce((curr, next) => curr > next ? curr : next);
+    final maxFreqInt = maxFreq.toInt();
+
     List<BarChartGroupData> barData = [];
     for (var i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
       barData.add(
@@ -28,14 +35,10 @@ class _BarChartFrequency extends State<BarChartFrequency> {
                       topLeft: Radius.circular(4), topRight: Radius.circular(4))
                   : null,
               width: showPattern ? 15 : 8,
-              toY: widget.grades.getGradeFrequency()[i] ?? 0,
+              toY: frequency[i] ?? 0,
               color: Theme.of(context).colorScheme.primary,
               rodStackItems: List.generate(
-                widget.grades
-                    .getGradeFrequency()
-                    .values
-                    .reduce((curr, next) => curr > next ? curr : next)
-                    .toInt(),
+                maxFreqInt,
                 (index) => BarChartRodStackItem(
                     index.toDouble(),
                     index + 1,
@@ -51,10 +54,7 @@ class _BarChartFrequency extends State<BarChartFrequency> {
                   ? null
                   : BackgroundBarChartRodData(
                       show: true,
-                      toY: widget.grades
-                          .getGradeFrequency()
-                          .values
-                          .reduce((curr, next) => curr > next ? curr : next),
+                      toY: maxFreq,
                       color: Theme.of(context).colorScheme.surfaceContainerHigh,
                     ),
             )

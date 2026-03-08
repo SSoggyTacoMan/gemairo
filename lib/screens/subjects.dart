@@ -45,8 +45,12 @@ class _SubjectsListView extends State<SubjectsListView> {
     List<Grade> grades =
         acP.schoolYear.grades.useable.onlyFilterd(acP.activeFilters());
 
+    // Compute subjects once instead of multiple times
+    final filteredSubjects = grades.subjects;
+    final numericalSubjects = grades.numericalGrades.subjects;
+
     List<Widget> widgets = [
-      ...grades.subjects.map((subject) => ListTile(
+      ...filteredSubjects.map((subject) => ListTile(
             title: Text(subject.name),
             leading: GradeAvatar(
               decimalDigits: rounded ? 0 : null,
@@ -116,14 +120,15 @@ class _SubjectsListView extends State<SubjectsListView> {
               ],
             ),
             onTap: () {
-              if (acP.schoolYear.grades.subjects
-                  .where((sub) => sub.id == subject.id)
-                  .isNotEmpty) {
+              // Use the unfiltered subjects for navigation
+              final allSubjects = acP.schoolYear.grades.subjects;
+              final matchingSubject =
+                  allSubjects.where((sub) => sub.id == subject.id);
+              if (matchingSubject.isNotEmpty) {
                 Navigate().to(
                     context,
                     SubjectStatisticsView(
-                      subject: acP.schoolYear.grades.subjects
-                          .firstWhere((sub) => sub.id == subject.id),
+                      subject: matchingSubject.first,
                     ),
                     "SubjectStatistics/${subject.id}/${subject.name}");
               }
@@ -147,7 +152,7 @@ class _SubjectsListView extends State<SubjectsListView> {
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 8, top: 0),
                 child: BarChartSubjectsAverage(
-                  subjects: grades.numericalGrades.subjects,
+                  subjects: numericalSubjects,
                   rounded: rounded,
                 ),
               ),
@@ -179,7 +184,7 @@ class _SubjectsListView extends State<SubjectsListView> {
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 8, top: 0),
                 child: BarChartSubjectsMinMax(
-                  subjects: grades.numericalGrades.subjects,
+                  subjects: numericalSubjects,
                 ),
               ),
             ),
@@ -192,7 +197,7 @@ class _SubjectsListView extends State<SubjectsListView> {
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 8, top: 0),
                 child: BarChartSubjectsWeight(
-                  subjects: grades.numericalGrades.subjects,
+                  subjects: numericalSubjects,
                 ),
               ),
             ),
