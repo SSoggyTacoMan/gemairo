@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:gemairo/apis/account_manager.dart';
@@ -9,7 +8,6 @@ import 'package:gemairo/apis/ads.dart';
 import 'package:gemairo/hive/adapters.dart';
 import 'package:gemairo/hive/extentions.dart';
 import 'package:gemairo/screens/subject.dart';
-import 'package:gemairo/widgets/ads.dart';
 import 'package:gemairo/widgets/avatars.dart';
 import 'package:gemairo/widgets/card.dart';
 import 'package:gemairo/widgets/charts/barchart_subjects_average.dart';
@@ -18,7 +16,6 @@ import 'package:gemairo/widgets/charts/barchart_subjects_weight.dart';
 import 'package:gemairo/widgets/filter.dart';
 import 'package:gemairo/widgets/global/skeletons.dart';
 import 'package:gemairo/widgets/navigation.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 
 class SubjectsListView extends StatefulWidget {
@@ -134,16 +131,6 @@ class _SubjectsListView extends State<SubjectsListView> {
           ))
     ];
 
-    bool showLeaderboard = Ads.instance != null &&
-        FirebaseRemoteConfig.instance.getBool('ads_subjects_leaderboard');
-    if (widgets.length >= 8) {
-      if (!showLeaderboard && Ads.instance != null) {
-        widgets.insert(6, Ads.instance!.bannerAd(context));
-      } else {
-        showLeaderboard = true;
-      }
-    }
-
     return ScaffoldSkeleton(
         injectOverlap: true,
         onRefresh: () async {
@@ -166,13 +153,6 @@ class _SubjectsListView extends State<SubjectsListView> {
               ),
             ),
           ),
-          if (Ads.instance != null) ...[
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Ads.instance?.bannerAd(context),
-            ),
-          ],
           Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: FilterChips(
@@ -205,13 +185,6 @@ class _SubjectsListView extends State<SubjectsListView> {
             ),
           ),
           const SizedBox(height: 8),
-          if (Ads.instance != null) ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Ads.instance?.bannerAd(context),
-            ),
-            const SizedBox(height: 8),
-          ],
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: GemairoCard(
@@ -224,13 +197,6 @@ class _SubjectsListView extends State<SubjectsListView> {
               ),
             ),
           ),
-          if (showLeaderboard && Ads.instance != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              margin: const EdgeInsets.only(top: 10),
-              height: 300,
-              child: const Advertisement(size: AdSize.mediumRectangle),
-            ),
         ]);
   }
 }

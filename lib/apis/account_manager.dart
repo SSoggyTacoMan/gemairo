@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gemairo/apis/saaf.dart';
 import 'package:gemairo/hive/adapters.dart';
 import 'package:gemairo/hive/extentions.dart';
 import 'package:hive/hive.dart';
@@ -63,7 +62,6 @@ class AccountProvider extends ChangeNotifier {
     config.activeProfileId = newid ?? config.activeProfileId;
     config.save();
     notifyListeners();
-    Saaf.instance?.setAdRequest(force: true);
   }
 
   void changeSchoolYear(int newid) {

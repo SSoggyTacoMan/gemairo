@@ -1,8 +1,6 @@
 import UIKit
-import AppTrackingTransparency
 import flutter_local_notifications
 import Flutter
-import GoogleMobileAds
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -19,16 +17,7 @@ import GoogleMobileAds
         UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
     }
       
-    func applicationDidBecomeActive(_ application: UIApplication) {
-        if #available(iOS 15.0, *) {
-            ATTrackingManager.requestTrackingAuthorization(completionHandler: { status in
-                  
-            })
-        }
-    }
-      
     GeneratedPluginRegistrant.register(with: self)
-    GADMobileAds.sharedInstance().requestConfiguration.testDeviceIdentifiers = [ "bae27ae297f1ea60743b27eb5351b744" ]
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 }

@@ -33,10 +33,6 @@
                 <data android:scheme="m6loapp" android:host="oauth2redirect" android:pathPrefix="/" />
             </intent-filter>
         </activity>
-        <!-- Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713 -->
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-9170931639371270~4644085927" />
         <meta-data
             android:name="notification"
             android:resource="@drawable/notification" />
@@ -47,7 +43,6 @@
             android:value="2" />
     </application>
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
     <queries>
         <intent>
             <action android:name="android.intent.action.VIEW" />

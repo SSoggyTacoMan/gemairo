@@ -8,7 +8,6 @@ import 'package:gemairo/apis/account_manager.dart';
 import 'package:gemairo/apis/ads.dart';
 import 'package:gemairo/hive/adapters.dart';
 import 'package:gemairo/hive/extentions.dart';
-import 'package:gemairo/widgets/ads.dart';
 import 'package:gemairo/widgets/announcements.dart';
 import 'package:gemairo/widgets/bottom_sheet.dart';
 import 'package:gemairo/widgets/card.dart';
@@ -20,7 +19,6 @@ import 'package:gemairo/widgets/charts/linechart_monthly_average.dart';
 import 'package:gemairo/widgets/facts_header.dart';
 import 'package:gemairo/widgets/filter.dart';
 import 'package:gemairo/widgets/global/skeletons.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -88,11 +86,6 @@ class _SchoolYearStatisticsView extends State<SchoolYearStatisticsView> {
                 calendarEvents: acP.person.calendarEvents,
               )),
         ),
-        if (Ads.instance != null)
-          StaggeredGridTile.fit(
-            crossAxisCellCount: 2,
-            child: Ads.instance!.bannerAd(context),
-          ),
         if (grades.numericalGrades.isNotEmpty)
           StaggeredGridTile.fit(
               crossAxisCellCount: 2,
@@ -127,20 +120,6 @@ class _SchoolYearStatisticsView extends State<SchoolYearStatisticsView> {
                     title: e.title.capitalize(),
                     value: e.value,
                     onTap: e.onTap))),
-        if (grades.useable
-            .generateFactsList(context,
-                Provider.of<AccountProvider>(context, listen: false).person)
-            .length
-            .isOdd)
-          const StaggeredGridTile.extent(
-            mainAxisExtent: 100,
-            crossAxisCellCount: 1,
-            child: SizedBox.expand(
-              child: Advertisement(
-                size: AdSize.fluid,
-              ),
-            ),
-          ),
         if (grades.numericalGrades.isNotEmpty &&
             grades
                     .map((g) => DateTime.parse(
@@ -184,35 +163,6 @@ class _SchoolYearStatisticsView extends State<SchoolYearStatisticsView> {
           ], context: context),
         ),
       ));
-
-      int bannerEveryXGrades = !(Platform.isAndroid || Platform.isIOS)
-          ? 0
-          : FirebaseRemoteConfig.instance.getInt('ads_grades_every_x_banner');
-      if (bannerEveryXGrades > 0) {
-        int bannerCount = children.length ~/ bannerEveryXGrades;
-        if (children.length == bannerEveryXGrades) {
-          bannerCount = 1;
-        }
-
-        if (bannerCount > 0 && Ads.instance != null) {
-          AdSize size =
-              FirebaseRemoteConfig.instance.getString('ads_grades_size') ==
-                      'large'
-                  ? AdSize.largeBanner
-                  : AdSize.banner;
-          for (int index = 0; index < bannerCount; index++) {
-            children.insert(
-              (index * bannerEveryXGrades) + bannerEveryXGrades + index,
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8.0,
-                ),
-                child: Ads.instance!.bannerAd(context, size: size),
-              ),
-            );
-          }
-        }
-      }
 
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),

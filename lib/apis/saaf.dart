@@ -7,14 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:gemairo/apis/account_manager.dart';
 import 'package:gemairo/hive/adapters.dart';
 import 'package:gemairo/hive/extentions.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:saaf/saaf.dart' as saaf;
 
 class Saaf {
   String app;
   bool initialized = false;
-  late Box box;
-  final String baseUrl = 'https://saaf-api.gemairo.app';
 
   Saaf._({required this.app});
 
@@ -27,7 +23,6 @@ class Saaf {
   }
 
   static Saaf? get instance {
-    //Saaf does not support the desktop platform
     if (Platform.isAndroid || Platform.isIOS) {
       String defaultAppInstance = 'gemairo';
       return Saaf._instanceFor(app: defaultAppInstance);
@@ -35,53 +30,21 @@ class Saaf {
     return null;
   }
 
-  saaf.AdRequest _adRequest = saaf.AdRequest(
-    failedClasses: [],
-    passedClasses: [],
-    exclude: [],
-    platform: Platform.isIOS ? 'ios' : 'android',
-    saafVersion: 4,
-  );
-  saaf.AdRequest get adRequest => _adRequest;
-
   Future<void> initialize() async {
-    // try {
     if (initialized == true) {
       return;
     }
 
-    box = await Hive.openBox('saaf');
     initialized = true;
     await setAdRequest();
-    // } catch (e) {}
   }
 
-  Future<saaf.AdRequest> setAdRequest({bool force = false}) async {
-    if (_adRequest.passedClasses.isNotEmpty && !force) {
-      return _adRequest;
-    }
-
-    List<String> bannerExclude =
-        List<String>.from(box.get("bannerAdExclude", defaultValue: []));
-    List<String> takeoverExclude =
-        List<String>.from(box.get("takeoverAdExclude", defaultValue: []));
-
-    List<String> exclude = [...bannerExclude, ...takeoverExclude];
-
+  Future<void> setAdRequest() async {
     Account account = AccountManager().getActive();
     Person? person = account.activeProfile;
 
-    //If there is no user info
     if (person == null) {
-      _adRequest = saaf.AdRequest(
-        failedClasses: [],
-        passedClasses: [],
-        exclude: [],
-        platform: Platform.isIOS ? 'ios' : 'android',
-        saafVersion: 4,
-      );
-
-      return _adRequest;
+      return;
     }
 
     // Analytics
@@ -94,147 +57,14 @@ class Saaf {
       FirebaseAnalytics.instance
           .setUserProperty(name: 'type', value: account.accountType.toString());
     }
-
-    List<Grade> grades = person.activeSchoolYear.grades.useable;
-    List<String> failedClasses = [];
-    List<String> passedClasses = [];
-
-    Map<String, List<RegExp>> classMappings = getClassMappings();
-
-    print(classMappings);
-
-    for (Subject subject in grades.useable.subjects) {
-      String unifiedName = mapClass(subject.name, classMappings: classMappings);
-
-      if (subject.grades.average.isNaN) {
-        failedClasses.add(unifiedName);
-        passedClasses.add(unifiedName);
-        continue;
-      }
-
-      if (subject.grades.average >= config.sufficientFrom) {
-        passedClasses.add(unifiedName);
-      } else {
-        failedClasses.add(unifiedName);
-      }
-    }
-
-    print(failedClasses);
-    print(passedClasses);
-
-    _adRequest = saaf.AdRequest(
-      failedClasses: failedClasses,
-      passedClasses: passedClasses,
-      exclude: exclude,
-      platform: Platform.isIOS ? 'ios' : 'android',
-      saafVersion: 4,
-    );
-
-    return _adRequest;
   }
 
-  void onBannerClick(
-    saaf.BannerAdResponse bannerAdResponse,
-  ) async {
-    FirebaseAnalytics.instance.logEvent(
-      name: 'ADS_saaf_click',
-      parameters: {'format': 'banner', 'id': bannerAdResponse.banner.id},
-    );
-
-    List<String> exclude =
-        List<String>.from(box.get("bannerAdExclude", defaultValue: []));
-    exclude.add(bannerAdResponse.banner.id);
-
-    box.put("bannerAdExclude", exclude);
-
-    setAdRequest(force: true);
-  }
-
-  void onTakeoverClick(saaf.TakeoverAdResponse takeoverAdResponse) async {
-    FirebaseAnalytics.instance.logEvent(name: 'ADS_saaf_click', parameters: {
-      'format': 'takeover',
-      'id': takeoverAdResponse.takeover.id,
-    });
-
-    if (takeoverAdResponse.takeover.inAppNavigate is String) {
-      // final DynamicLinkService _dynamicLinkService =
-      //     locator<DynamicLinkService>();
-      // _dynamicLinkService.handleDeepLink(
-      //     Uri.parse(takeoverAdResponse.takeover.inAppNavigate!));
-    }
-
-    List<String> exclude =
-        List<String>.from(box.get("takeoverAdExclude", defaultValue: []));
-    exclude.add(takeoverAdResponse.takeover.id);
-
-    box.put("takeoverAdExclude", exclude);
-
-    setAdRequest(force: true);
-  }
-
-  Widget bannerAd(BuildContext context, Widget fallback) {
-    return Container(
-      constraints: const BoxConstraints(minHeight: 70.0 + 7.0 + 7.0),
-      width: double.infinity,
-      child: saaf.BannerAd(
-        request: adRequest,
-        onClick: onBannerClick,
-        onReport: (_) {},
-        onImpression: (_) {
-          FirebaseAnalytics.instance.logEvent(
-            name: 'ADS_saaf_impression',
-            parameters: {'format': 'banner'},
-          );
-        },
-        errorWidget: fallback,
-        baseUrl: baseUrl,
-        style: saaf.BannerAdStyle(
-          backgroundColor:
-              Theme.of(context).colorScheme.surfaceContainerHighest,
-          titleColor: Theme.of(context).textTheme.titleLarge!.color!,
-          textColor: Theme.of(context).textTheme.bodyMedium!.color!,
-          primaryColor: Theme.of(context).colorScheme.primary,
-          titleMaxLines: 2,
-          subtitleMaxLines: 2,
-        ),
-      ),
-    );
+  Widget bannerAd(BuildContext context) {
+    return const SizedBox.shrink();
   }
 
   Future<void> handleTakeover(context) async {
-    final takeoverAd = saaf.TakeoverAd(
-      request: adRequest,
-      onClick: onTakeoverClick,
-      onReport: (_) {},
-      onImpression: (saaf.TakeoverAdResponse adResponse) {
-        FirebaseAnalytics.instance.logEvent(
-          name: 'ADS_saaf_impression',
-          parameters: {'format': 'takeover'},
-        );
-
-        List<String> exclude =
-            List<String>.from(box.get("takeoverAdExclude", defaultValue: []));
-        exclude.add(adResponse.takeover.id);
-        box.put("bannerAdExclude", exclude);
-      },
-      baseUrl: baseUrl,
-      style: saaf.TakeoverAdStyle(
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-        titleColor: Theme.of(context).textTheme.titleLarge!.color!,
-        textColor: Theme.of(context).textTheme.bodyMedium!.color!,
-        primaryColor: Theme.of(context).colorScheme.primary,
-      ),
-    );
-
-    try {
-      await takeoverAd.load();
-
-      if (takeoverAd.isLoaded) {
-        takeoverAd.show(context);
-      }
-    } catch (e) {
-      // No ad found
-    }
+    return;
   }
 }
 
@@ -264,7 +94,6 @@ String mapClass(String className, {Map<String, List<RegExp>>? classMappings}) {
     for (RegExp regex in regexList) {
       if (regex.hasMatch(className)) {
         unifiedName = key;
-        print('SAAF Mapped "$className" to "$key"');
         break;
       }
     }

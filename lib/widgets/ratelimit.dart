@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:gemairo/widgets/ads.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class RateLimitOverlay {
   BuildContext _context;
@@ -138,15 +136,6 @@ class _FullScreenLoaderState extends State<_FullScreenLoader> {
                         textAlign: TextAlign.center,
                       ),
                   ]),
-            ),
-            const Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(left: 15, right: 15, bottom: 30),
-                child: Advertisement(
-                  size: AdSize.mediumRectangle,
-                  type: 'leaderboard',
-                ),
-              ),
             ),
           ],
         ),

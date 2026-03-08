@@ -3,7 +3,6 @@ import 'package:collection/collection.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:expandable_page_view/expandable_page_view.dart';
 import 'package:flutter/material.dart';
-import 'package:gemairo/apis/ads.dart';
 import 'package:gemairo/widgets/global/skeletons.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:gemairo/apis/magister.dart';
@@ -346,14 +345,6 @@ class _SettingsView extends State<SettingsView> {
           dense: true,
         ),
         ListTile(
-          onTap: () async {
-            await Ads.instance?.checkGDPRConsent();
-          },
-          title: const Text("GDPR"),
-          leading: const Icon(Icons.ads_click),
-          trailing: const CircleAvatar(child: Icon(Icons.navigate_next)),
-        ),
-        ListTile(
             onTap: () => launchUrl(
                 Uri(scheme: 'mailto', path: 'support@gemairo.app'),
                 mode: LaunchMode.externalApplication),
@@ -383,34 +374,28 @@ class _SettingsView extends State<SettingsView> {
             subtitle: Text(AppLocalizations.of(context)!.githubExpl),
             leading: const Icon(FontAwesome5.github),
             trailing: const CircleAvatar(child: Icon(Icons.open_in_new))),
-        InkWell(
-            onLongPress: () {
-              config.noAds = !config.noAds;
-              config.save();
-              Gemairo.of(context).update();
+        ListTile(
+            onTap: () async {
+              PackageInfo packageInfo = await PackageInfo.fromPlatform();
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                showLicensePage(
+                  context: context,
+                  applicationVersion:
+                      "${packageInfo.version} (${packageInfo.buildNumber})",
+                  applicationName: packageInfo.appName,
+                  applicationIcon: Icon(
+                    const IconData(0xf201, fontFamily: "Gemairo"),
+                    size: 64 * 0.8,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                );
+              });
             },
-            child: ListTile(
-                onTap: () async {
-                  PackageInfo packageInfo = await PackageInfo.fromPlatform();
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    showLicensePage(
-                      context: context,
-                      applicationVersion:
-                          "${packageInfo.version} (${packageInfo.buildNumber})",
-                      applicationName: packageInfo.appName,
-                      applicationIcon: Icon(
-                        const IconData(0xf201, fontFamily: "Gemairo"),
-                        size: 64 * 0.8,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    );
-                  });
-                },
-                title: Text(AppLocalizations.of(context)!.licenses),
-                subtitle: Text(AppLocalizations.of(context)!.licensesExpl),
-                leading: const Icon(FontAwesome5.file_contract),
-                trailing:
-                    const CircleAvatar(child: Icon(Icons.navigate_next)))),
+            title: Text(AppLocalizations.of(context)!.licenses),
+            subtitle: Text(AppLocalizations.of(context)!.licensesExpl),
+            leading: const Icon(FontAwesome5.file_contract),
+            trailing:
+                const CircleAvatar(child: Icon(Icons.navigate_next))),
       ],
     );
   }
