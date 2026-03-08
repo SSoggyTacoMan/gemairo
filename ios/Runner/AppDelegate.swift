@@ -1,5 +1,4 @@
 import UIKit
-import AppTrackingTransparency
 import flutter_local_notifications
 import Flutter
 

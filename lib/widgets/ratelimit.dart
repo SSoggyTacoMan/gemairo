@@ -137,7 +137,6 @@ class _FullScreenLoaderState extends State<_FullScreenLoader> {
                       ),
                   ]),
             ),
-            const Spacer(),
           ],
         ),
       ),

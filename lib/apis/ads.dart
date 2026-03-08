@@ -44,7 +44,7 @@ class Ads {
   }
 
   Widget bannerAd(BuildContext context) {
-    return const SizedBox();
+    return const SizedBox.shrink();
   }
 
   Future<void> showInterstitial() async {

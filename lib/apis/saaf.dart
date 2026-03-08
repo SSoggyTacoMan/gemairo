@@ -60,7 +60,7 @@ class Saaf {
   }
 
   Widget bannerAd(BuildContext context) {
-    return const SizedBox();
+    return const SizedBox.shrink();
   }
 
   Future<void> handleTakeover(context) async {
