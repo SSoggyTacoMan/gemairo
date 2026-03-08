@@ -29,14 +29,11 @@ class _LineChartGradesState extends State<LineChartGrades> {
     gradeData = List.generate(useablegrades.length, (index) {
       return FlSpot(index.toDouble(), useablegrades[index].grade);
     });
-    // Use running sum for O(n) instead of O(n²) average calculation
+    // Compute running average using the same semantics as List<Grade>.average
     if (widget.showAverage && useablegrades.isNotEmpty) {
-      double runningSum = 0;
-      double runningWeight = 0;
       averageGradeData = List.generate(useablegrades.length, (index) {
-        runningSum += useablegrades[index].grade * useablegrades[index].weight;
-        runningWeight += useablegrades[index].weight;
-        return FlSpot(index.toDouble(), runningSum / runningWeight);
+        final gradesUntilNow = useablegrades.take(index + 1).toList();
+        return FlSpot(index.toDouble(), gradesUntilNow.average);
       });
     } else {
       averageGradeData = [];
