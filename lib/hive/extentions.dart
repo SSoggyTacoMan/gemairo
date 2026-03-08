@@ -182,10 +182,10 @@ extension GradeCalculations on List<Grade> {
     // Pre-compute filter sets once instead of per-grade
     final quarterCodes = <String>{};
     final subjects = <String>{};
-    final teachers = <dynamic>{};
-    final dateRanges = <dynamic>[];
+    final teachers = <String>{};
+    final dateRanges = <DateTimeRange>[];
     bool filterPTA = false;
-    final inputStrings = <dynamic>[];
+    final inputStrings = <String>[];
 
     for (var filter in activeFilters) {
       switch (filter.type) {
@@ -196,16 +196,16 @@ extension GradeCalculations on List<Grade> {
           subjects.add(filter.filter.toString());
           break;
         case FilterTypes.teacher:
-          teachers.add(filter.filter);
+          teachers.add(filter.filter as String);
           break;
         case FilterTypes.dateRange:
-          dateRanges.add(filter.filter);
+          dateRanges.add(filter.filter as DateTimeRange);
           break;
         case FilterTypes.pta:
           filterPTA = true;
           break;
         case FilterTypes.inputString:
-          inputStrings.add(filter.filter);
+          inputStrings.add(filter.filter as String);
           break;
         default:
           break;
