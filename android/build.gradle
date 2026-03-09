@@ -16,6 +16,24 @@ subprojects {
     project.evaluationDependsOn(':app')
 }
 
+// Patch legacy plugins that don't declare a namespace in their build.gradle.
+// AGP 8.0+ requires a namespace; older pub packages only have a `package`
+// attribute in AndroidManifest.xml.  Read it and set namespace automatically.
+subprojects {
+    afterEvaluate {
+        def androidExt = extensions.findByName("android")
+        if (androidExt != null && androidExt.namespace == null) {
+            def manifestFile = new File(projectDir, "src/main/AndroidManifest.xml")
+            if (manifestFile.exists()) {
+                def packageName = new XmlParser().parse(manifestFile).@package
+                if (packageName) {
+                    androidExt.namespace = packageName
+                }
+            }
+        }
+    }
+}
+
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
