@@ -2,7 +2,7 @@ name: Build Debug APK
 
 on:
   push:
-    branches: [stable, claude/fix-unsigned-apk-error]
+    branches: [stable]
   workflow_dispatch:
 
 jobs:
