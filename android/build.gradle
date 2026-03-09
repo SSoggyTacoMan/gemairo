@@ -12,9 +12,6 @@ rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
-subprojects {
-    project.evaluationDependsOn(':app')
-}
 
 // Patch legacy plugins that don't declare a namespace in their build.gradle.
 // AGP 8.0+ requires a namespace; older pub packages only have a `package`
