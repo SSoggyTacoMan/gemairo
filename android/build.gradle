@@ -17,20 +17,29 @@ subprojects {
 // AGP 8.0+ requires a namespace; older pub packages only have a `package`
 // attribute in AndroidManifest.xml.  Read it and set namespace automatically.
 subprojects {
-    afterEvaluate {
-        try {
-            def androidExt = extensions.findByName("android")
-            if (androidExt != null && androidExt.namespace == null) {
-                def manifestFile = new File(projectDir, "src/main/AndroidManifest.xml")
-                if (manifestFile.exists()) {
-                    def packageName = new XmlParser().parse(manifestFile).@package
-                    if (packageName) {
-                        androidExt.namespace = packageName
+    // Gradle 8.8+ throws if afterEvaluate is called on an already-evaluated project.
+    // Wrap the call so already-evaluated subprojects are handled gracefully.
+    try {
+        afterEvaluate {
+            try {
+                def androidExt = extensions.findByName("android")
+                if (androidExt != null && androidExt.namespace == null) {
+                    def manifestFile = new File(projectDir, "src/main/AndroidManifest.xml")
+                    if (manifestFile.exists()) {
+                        def packageName = new XmlParser().parse(manifestFile).@package
+                        if (packageName) {
+                            androidExt.namespace = packageName
+                        }
                     }
                 }
+            } catch (Exception e) {
+                // Silently ignore namespace patching errors to avoid masking other build failures
             }
-        } catch (Exception e) {
-            // Silently ignore namespace patching errors to avoid masking other build failures
+        }
+    } catch (Exception ignored) {
+        // Project already evaluated (Gradle 8.8+); namespace patching skipped for this subproject.
+        if (!ignored.message?.contains('already evaluated')) {
+            logger.warn("Unexpected error setting up namespace patching for ${project.name}: ${ignored.message}")
         }
     }
 }
