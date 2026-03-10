@@ -51,12 +51,19 @@ jobs:
         run: echo "${{ secrets.KEY_PROPERTIES }}" | base64 -d > ./android/key.properties
       - name: Update version in YAML
         run: sed -i 's/0.0.1+99/${{ steps.version.outputs.content }}+${{ github.run_number }}/g' pubspec.yaml
-      - uses: actions/setup-java@v1
+      - name: Set up JDK 17
+        id: setup-java
+        uses: actions/setup-java@v3
         with:
-          java-version: "12.x"
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Verify Java
+        run: java -version
       - uses: subosito/flutter-action@v1
         with:
           channel: "stable"
+      - name: Configure Flutter JDK
+        run: flutter config --jdk-dir="$JAVA_HOME"
       - run: flutter clean
       - run: flutter pub get
       - run: flutter build apk --release --split-per-abi
@@ -115,9 +122,14 @@ jobs:
           # apply provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
-      - uses: actions/setup-java@v1
+      - name: Set up JDK 17
+        id: setup-java
+        uses: actions/setup-java@v3
         with:
-          java-version: "12.x"
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Verify Java
+        run: java -version
       - uses: subosito/flutter-action@v1
         with:
           channel: "stable"
