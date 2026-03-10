@@ -38,6 +38,9 @@ subprojects {
         }
     } catch (Exception ignored) {
         // Project already evaluated (Gradle 8.8+); namespace patching skipped for this subproject.
+        if (!ignored.message?.contains('already evaluated')) {
+            logger.warn("Unexpected error setting up namespace patching for ${project.name}: ${ignored.message}")
+        }
     }
 }
 
