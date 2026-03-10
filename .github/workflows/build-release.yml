@@ -59,7 +59,7 @@ jobs:
           java-version: '17'
       - name: Verify Java
         run: java -version
-      - uses: subosito/flutter-action@v1
+      - uses: subosito/flutter-action@v2
         with:
           channel: "stable"
       - name: Configure Flutter JDK
@@ -130,7 +130,7 @@ jobs:
           java-version: '17'
       - name: Verify Java
         run: java -version
-      - uses: subosito/flutter-action@v1
+      - uses: subosito/flutter-action@v2
         with:
           channel: "stable"
       - run: flutter clean
