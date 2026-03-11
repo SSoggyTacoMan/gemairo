@@ -50,7 +50,8 @@ jobs:
       - name: Load key.properties
         run: echo "${{ secrets.KEY_PROPERTIES }}" | base64 -d > ./android/key.properties
       - name: Update version in YAML
-        run: sed -i 's/version: .*/version: ${{ steps.version.outputs.content }}+${{ github.run_number }}/g' pubspec.yaml
+        run: |
+          sed -i 's/version: .*/version: ${{ steps.version.outputs.content }}+${{ github.run_number }}/g' pubspec.yaml
       - name: Set up JDK 17
         id: setup-java
         uses: actions/setup-java@v3
@@ -97,7 +98,8 @@ jobs:
         with:
           path: version1.txt
       - name: Update version in YAML
-        run: sed -i'.ori' -e 's/version: .*/version: ${{ steps.version.outputs.content }}+${{ github.run_number }}/g' pubspec.yaml
+        run: |
+          sed -i'.ori' -e 's/version: .*/version: ${{ steps.version.outputs.content }}+${{ github.run_number }}/g' pubspec.yaml
       - name: Install the Apple certificate and provisioning profile
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.APPSTORE_CERT_BASE64 }}
